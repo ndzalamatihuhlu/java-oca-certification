@@ -5,7 +5,7 @@
  * Released: 20 June 2025
  * Updated: 7 July 2025
  * Institution: FMTALI
- * <pr></pr>
+ * <pr>
  * A simple Java console-based system for capturing, viewing,
  * searching, and managing registered vehicle data. Designed to
  * support core programming concepts such as object encapsulation,

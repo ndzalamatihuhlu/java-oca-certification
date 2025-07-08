@@ -1,242 +1,268 @@
 /**
- * --------------------------------------------------------------
+ * ---------------------------------------------------------------------
  * Vehicle Reg – Console Application
  * Author: Ndzalama Tihuhlu
  * Released: 20 June 2025
- * Updated: 7 July 2025
+ * Updated: 8 July 2025
  * Institution: FMTALI
- * <pr>
- * A simple Java console-based system for capturing, viewing,
- * searching, and managing registered vehicle data. Designed to
- * support core programming concepts such as object encapsulation,
- * flow control, input validation, and list operations.
- * <p>
- * Functionalities:
- * - Add new vehicle
- * - Display all registered vehicles
- * - Search by VIN or plate number
- * - Delete by VIN
- * - Show summary count and total mileage
- * --------------------------------------------------------------
+ *
+ * A console-based application to capture, view, search, and manage
+ * vehicle registration details. Demonstrates core programming concepts:
+ * - Object-Oriented Programming (encapsulation with Car class)
+ * - Loops and flow control (while/do-while, switch)
+ * - Input validation and error handling
+ * - Java collections and list operations
+ * - Regex pattern matching for format validation
+ * ---------------------------------------------------------------------
  */
 
 package com.vehicle.reg;
 
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class Main {
-    public static void main(String[] args) {
 
-        Scanner input = new Scanner(System.in);
-        ArrayList<Car> cars = new ArrayList<>(); // vehicle storage list
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in); // Input reader
+        ArrayList<Car> cars = new ArrayList<>(); // Vehicle storage
         int menuOption;
 
-        // =================== APPLICATION HEADER ===================
+        // App Title
         System.out.println("====================================================");
         System.out.println("       VEHICLE REGISTRATION SYSTEM (CONSOLE APP)   ");
         System.out.println("====================================================");
         System.out.println("Welcome! This system allows you to register, search,");
         System.out.println("view and manage vehicle details in a secure format.");
-        System.out.println("----------------------------------------------------\n");
+        System.out.println("----------------------------------------------------");
 
-        // ========== MAIN APPLICATION LOOP ========== //
+        // ===================== MAIN MENU =====================
         do {
             printMenu();
-
-            // Validate input for numeric option
-            while (!input.hasNextInt()) {
-                System.out.print("Enter a valid number from the menu: ");
-                input.next();
-            }
-            menuOption = input.nextInt();
-            input.nextLine(); // Consume newline
+            menuOption = getValidatedMenuOption(input);
 
             switch (menuOption) {
-
-                // =================== 1. REGISTER VEHICLE ===================
-                case 1:
+                case 1 -> {
+                    // =========== REGISTER VEHICLE ============
                     Car car = new Car();
-
                     System.out.println("\n-- Register a New Vehicle --");
-                    System.out.println("Please follow the prompts to capture all vehicle details.\n");
 
-                    // --- Make ---
-                    System.out.print("Enter the vehicle make (e.g. Toyota, BMW, Hyundai): ");
-                    String make = input.nextLine().trim();
-                    while (make.isEmpty()) {
-                        System.out.print("Make cannot be empty. Enter Make: ");
-                        make = input.nextLine().trim();
-                    }
-                    car.setMake(make);
+                    // Make
+                    System.out.print("Enter make (e.g. Toyota): ");
+                    car.setMake(getNonEmptyInput(input));
 
-                    // --- Model ---
-                    System.out.print("Enter the vehicle model (e.g. Corolla, i20, M4): ");
-                    String model = input.nextLine().trim();
-                    while (model.isEmpty()) {
-                        System.out.print("Model cannot be empty. Enter Model: ");
-                        model = input.nextLine().trim();
-                    }
-                    car.setModel(model);
+                    // Model
+                    System.out.print("Enter model (e.g. Corolla): ");
+                    car.setModel(getNonEmptyInput(input));
 
-                    // --- VIN ---
+                    // VIN
                     String vin;
-                    do {
-                        System.out.print("Enter VIN (17 characters, e.g. A1B2C3D4E5F6G7H8J): ");
-                        vin = input.nextLine().trim();
-                        if (vin.length() != 17) {
-                            System.out.println("Error: VIN must be exactly 17 characters. Try again.\n");
+                    while (true) {
+                        System.out.print("Enter 17-char VIN (e.g. A1B2C3D4E5F6G7H8I): ");
+                        vin = input.nextLine().trim().toUpperCase();
+
+                        if (vin.length() == 17 && vin.matches("[A-Z0-9]{17}")) {
+                            if (vinExists(cars, vin)) {
+                                System.out.println("A vehicle with this VIN already exists.");
+                            } else {
+                                break;
+                            }
+                        } else {
+                            System.out.println("Invalid VIN format. Must be 17 letters/numbers.");
                         }
-                    } while (vin.length() != 17);
+                    }
                     car.setVin(vin);
 
-                    // --- Plate ---
+                    // Plate Format
                     int plateChoice;
                     do {
-                        System.out.println("\nSelect a license plate format:");
+                        System.out.println("\nSelect plate format:");
                         System.out.println("1 - Old Format (e.g. ABC123GP)");
                         System.out.println("2 - New Format (e.g. AB12CDGP)");
-                        System.out.print("Your selection: ");
-                        while (!input.hasNextInt()) {
-                            System.out.print("Enter 1 or 2 only: ");
-                            input.next();
-                        }
-                        plateChoice = input.nextInt();
-                        input.nextLine();
+                        System.out.print("Your choice: ");
+                        plateChoice = getIntInput(input, 1, 2);
                     } while (plateChoice != 1 && plateChoice != 2);
 
-                    System.out.print("Enter full license plate (e.g. JHN675GP): ");
-                    String plate = input.nextLine().trim().toUpperCase();
+                    // Plate Number
+                    String platePattern = (plateChoice == 1)
+                            ? "[A-Z]{3}[0-9]{3}GP"
+                            : "[A-Z]{2}[0-9]{2}[A-Z]{2}GP";
+                    String plate;
+                    while (true) {
+                        System.out.print("Enter plate number (e.g. ABC123GP): ");
+                        plate = input.nextLine().trim().toUpperCase();
+
+                        if (Pattern.matches(platePattern, plate)) {
+                            if (plateExists(cars, plate)) {
+                                System.out.println("A vehicle with this plate already exists.");
+                            } else {
+                                break;
+                            }
+                        } else {
+                            System.out.println("Invalid plate format. Follow selected format exactly.");
+                        }
+                    }
                     car.setPlateNumber(plate);
 
-                    // --- Mileage ---
-                    System.out.print("Enter mileage in kilometres (e.g. 85200): ");
-                    while (!input.hasNextInt()) {
-                        System.out.print("Please enter a valid number: ");
-                        input.next();
-                    }
-                    car.setMileage(input.nextInt());
+                    // Mileage
+                    System.out.print("Enter mileage (0–1,000,000): ");
+                    car.setMileage(getIntInput(input, 0, 1_000_000));
 
-                    // --- Year ---
-                    System.out.print("Enter year of manufacture (e.g. 2020): ");
-                    while (!input.hasNextInt()) {
-                        System.out.print("Please enter a valid year: ");
-                        input.next();
-                    }
-                    car.setYear(input.nextInt());
-                    input.nextLine();
+                    // Year
+                    System.out.print("Enter year of manufacture (1900–2025): ");
+                    car.setYear(getIntInput(input, 1900, 2025));
 
-                    // --- Confirm before saving ---
-                    System.out.println("\n--- Confirm Vehicle Entry ---");
-                    System.out.println("Make       : " + car.getMake());
-                    System.out.println("Model      : " + car.getModel());
-                    System.out.println("VIN        : " + car.getVin());
-                    System.out.println("Plate      : " + car.getPlateNumber());
-                    System.out.println("Mileage    : " + car.getMileage());
-                    System.out.println("Year       : " + car.getYear());
+                    // Confirm and Save
+                    System.out.println("\nConfirm vehicle details:");
+                    printVehicleDetails(car);
                     System.out.print("Save this vehicle? (yes/no): ");
-                    String confirm = input.nextLine().trim().toLowerCase();
-                    if (confirm.equals("yes")) {
+                    if (input.nextLine().trim().equalsIgnoreCase("yes")) {
                         cars.add(car);
-                        System.out.println("Vehicle registered successfully. Returning to menu...\n");
+                        System.out.println("Vehicle saved successfully.\n");
                     } else {
-                        System.out.println("Vehicle entry cancelled. Returning to menu...\n");
+                        System.out.println("Vehicle not saved.\n");
                     }
-                    break;
+                }
 
-                // =================== 2. VIEW VEHICLES ===================
-                case 2:
-                    System.out.println("\n================ REGISTERED VEHICLES ===============");
+                case 2 -> {
+                    // ======== VIEW VEHICLES =========
+                    System.out.println("\n====== REGISTERED VEHICLES ======");
                     if (cars.isEmpty()) {
-                        System.out.println("[No vehicles registered yet. Please use option 1 to begin.]\n");
+                        System.out.println("No vehicles registered.\n");
                     } else {
                         int count = 1;
                         int totalMileage = 0;
                         for (Car c : cars) {
-                            // Display vehicle info with numbering and separators
                             System.out.println("\nVehicle #" + count++);
-                            System.out.println("Make         : " + c.getMake());
-                            System.out.println("Model        : " + c.getModel());
-                            System.out.println("VIN          : " + c.getVin());
-                            System.out.println("Plate Number : " + c.getPlateNumber());
-                            System.out.println("Mileage      : " + c.getMileage() + " km");
-                            System.out.println("Year         : " + c.getYear());
-                            System.out.println("----------------------------------------------------");
+                            printVehicleDetails(c);
                             totalMileage += c.getMileage();
                         }
-                        // Display summary info
-                        System.out.println("\nTotal Vehicles Registered: " + cars.size());
-                        System.out.println("Total Combined Mileage  : " + totalMileage + " km\n");
+                        System.out.println("\nTotal Registered: " + cars.size());
+                        System.out.println("Combined Mileage: " + totalMileage + " km");
                     }
-                    break;
+                }
 
-                // =================== 3. SEARCH VEHICLE ===================
-                case 3:
-                    System.out.println("\n-- Search a Vehicle --");
-                    System.out.print("Enter VIN or Plate Number to search (case-insensitive): ");
-                    String search = input.nextLine().trim().toUpperCase();
+                case 3 -> {
+                    // ======= SEARCH VEHICLE =======
+                    System.out.print("\nEnter VIN or Plate to search: ");
+                    String searchKey = input.nextLine().trim().toUpperCase();
                     boolean found = false;
+
                     for (Car c : cars) {
-                        if (c.getVin().equalsIgnoreCase(search) || c.getPlateNumber().equalsIgnoreCase(search)) {
-                            System.out.println("\nVehicle Found:");
-                            System.out.println("Make   : " + c.getMake());
-                            System.out.println("Model  : " + c.getModel());
-                            System.out.println("VIN    : " + c.getVin());
-                            System.out.println("Plate  : " + c.getPlateNumber());
-                            System.out.println("Mileage: " + c.getMileage());
-                            System.out.println("Year   : " + c.getYear());
+                        if (c.getVin().equalsIgnoreCase(searchKey)
+                                || c.getPlateNumber().equalsIgnoreCase(searchKey)) {
+                            System.out.println("\nVehicle found:");
+                            printVehicleDetails(c);
                             found = true;
                             break;
                         }
                     }
-                    if (!found) {
-                        System.out.println("No matching vehicle found with given VIN or Plate.\n");
-                    }
-                    break;
 
-                // =================== 4. DELETE VEHICLE ===================
-                case 4:
-                    System.out.println("\n-- Remove a Vehicle Record --");
-                    System.out.print("Enter VIN of the vehicle to delete: ");
-                    String deleteVin = input.nextLine().trim();
-                    boolean removed = false;
-                    for (int i = 0; i < cars.size(); i++) {
-                        if (cars.get(i).getVin().equalsIgnoreCase(deleteVin)) {
-                            cars.remove(i);
-                            System.out.println("Vehicle record removed successfully.\n");
-                            removed = true;
+                    if (!found) {
+                        System.out.println("No vehicle found with that VIN or plate.");
+                    }
+                }
+
+                case 4 -> {
+                    // ======= DELETE VEHICLE =======
+                    System.out.print("\nEnter VIN to delete: ");
+                    String deleteVin = input.nextLine().trim().toUpperCase();
+                    Car toDelete = null;
+
+                    for (Car c : cars) {
+                        if (c.getVin().equalsIgnoreCase(deleteVin)) {
+                            toDelete = c;
                             break;
                         }
                     }
-                    if (!removed) {
-                        System.out.println("No vehicle with that VIN was found. Nothing deleted.\n");
+
+                    if (toDelete != null) {
+                        System.out.print("Confirm deletion (yes/no): ");
+                        if (input.nextLine().trim().equalsIgnoreCase("yes")) {
+                            cars.remove(toDelete);
+                            System.out.println("Vehicle deleted.\n");
+                        } else {
+                            System.out.println("Deletion cancelled.\n");
+                        }
+                    } else {
+                        System.out.println("VIN not found. Nothing deleted.\n");
                     }
-                    break;
+                }
 
-                // =================== 5. EXIT SYSTEM ===================
-                case 5:
-                    System.out.println("\nThank you for using Vehicle Reg. Your data session is now closed.");
-                    System.out.println("====================================================\n");
-                    break;
+                case 5 -> System.out.println("\nExiting Vehicle Reg. Goodbye!");
 
-                // =================== INVALID MENU INPUT ===================
-                default:
-                    System.out.println("Invalid selection. Please choose from the listed options only.\n");
+                default -> System.out.println("Invalid choice. Please enter option 1–5.\n");
             }
 
         } while (menuOption != 5);
     }
 
-    /**
-     * Displays the main navigation menu with available actions.
-     */
+    // ------------------ HELPER METHODS -------------------
+
     public static void printMenu() {
-        System.out.println("\n------------------ MAIN MENU ------------------");
+        System.out.println("\n---------------- MAIN MENU ----------------");
         System.out.println("1. Register a new vehicle");
         System.out.println("2. View all registered vehicles");
         System.out.println("3. Search vehicle by VIN or Plate");
         System.out.println("4. Delete vehicle by VIN");
         System.out.println("5. Exit");
-        System.out.print("\nSelect an option to proceed: ");
+        System.out.print("Select option: ");
+    }
+
+    public static int getValidatedMenuOption(Scanner input) {
+        while (true) {
+            if (input.hasNextInt()) {
+                int option = input.nextInt();
+                input.nextLine();
+                if (option >= 1 && option <= 5) return option;
+            } else {
+                input.next(); // discard invalid input
+            }
+            System.out.print("Enter a valid option (1–5): ");
+        }
+    }
+
+    public static String getNonEmptyInput(Scanner input) {
+        String text;
+        while (true) {
+            text = input.nextLine().trim();
+            if (!text.isEmpty()) return text;
+            System.out.print("Input cannot be empty. Try again: ");
+        }
+    }
+
+    public static int getIntInput(Scanner input, int min, int max) {
+        while (true) {
+            if (input.hasNextInt()) {
+                int value = input.nextInt();
+                input.nextLine();
+                if (value >= min && value <= max) return value;
+                else System.out.print("Enter between " + min + " and " + max + ": ");
+            } else {
+                System.out.print("Invalid number. Try again: ");
+                input.next(); // discard invalid input
+            }
+        }
+    }
+
+    public static void printVehicleDetails(Car c) {
+        System.out.println("Make         : " + c.getMake());
+        System.out.println("Model        : " + c.getModel());
+        System.out.println("VIN          : " + c.getVin());
+        System.out.println("Plate Number : " + c.getPlateNumber());
+        System.out.println("Mileage      : " + c.getMileage() + " km");
+        System.out.println("Year         : " + c.getYear());
+        System.out.println("-------------------------------------------");
+    }
+
+    // Checks if a VIN is already registered
+    public static boolean vinExists(ArrayList<Car> cars, String vin) {
+        return cars.stream().anyMatch(c -> c.getVin().equalsIgnoreCase(vin));
+    }
+
+    // Checks if a plate number is already registered
+    public static boolean plateExists(ArrayList<Car> cars, String plate) {
+        return cars.stream().anyMatch(c -> c.getPlateNumber().equalsIgnoreCase(plate));
     }
 }
